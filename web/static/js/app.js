@@ -74,14 +74,14 @@ function renderGameCard(game) {
 }
 
 async function loadGames() {
-    els.gameList.innerHTML = '<div class="loader">Carregando catalogo...</div>';
+    els.gameList.innerHTML = '<div class="loader">Carregando catálogo...</div>';
     try {
         const games = await api('/games');
         if (!games || games.length === 0) {
             els.gameList.innerHTML = `
                 <div class="empty-state">
                     <h3>Cofre vazio</h3>
-                    <p>Adicione o primeiro jogo ao seu catalogo.</p>
+                    <p>Adicione o primeiro jogo ao seu catálogo.</p>
                 </div>
             `;
             return;
@@ -152,7 +152,7 @@ async function submitGame(event) {
 }
 
 async function deleteGame(id) {
-    if (!confirm('Remover este jogo do catalogo?')) return;
+    if (!confirm('Remover este jogo do catálogo?')) return;
     try {
         await api(`/games/${id}`, { method: 'DELETE' });
         showToast('Jogo removido');
@@ -164,7 +164,7 @@ async function deleteGame(id) {
 
 async function loadReport() {
     showModal(els.modalReport);
-    els.reportBody.innerHTML = '<div class="loader">Calculando estatisticas...</div>';
+    els.reportBody.innerHTML = '<div class="loader">Calculando estatísticas...</div>';
 
     try {
         const r = await api('/report');
@@ -189,32 +189,32 @@ async function loadReport() {
 
         els.reportBody.innerHTML = `
             <div class="report-card">
-                <div class="label">Total de Jogos</div>
+                <div class="label">Total de jogos</div>
                 <div class="value">${r.total_games || 0}</div>
             </div>
             <div class="report-card">
-                <div class="label">Rating Medio</div>
+                <div class="label">Rating médio</div>
                 <div class="value">${Number(r.average_rating || 0).toFixed(2)}</div>
             </div>
             <div class="report-card">
-                <div class="label">Maior Rating</div>
+                <div class="label">Maior rating</div>
                 ${highest}
             </div>
             <div class="report-card">
-                <div class="label">Menor Rating</div>
+                <div class="label">Menor rating</div>
                 ${lowest}
             </div>
             <div class="report-card full-width">
-                <div class="label">Por Genero</div>
+                <div class="label">Por gênero</div>
                 <ul>${genreList || '<li><span>Sem dados</span></li>'}</ul>
             </div>
             <div class="report-card full-width">
-                <div class="label">Por Plataforma</div>
+                <div class="label">Por plataforma</div>
                 <ul>${platformList || '<li><span>Sem dados</span></li>'}</ul>
             </div>
         `;
     } catch (err) {
-        els.reportBody.innerHTML = `<div class="empty-state"><h3>Erro ao gerar relatorio</h3><p>${escapeHtml(err.message)}</p></div>`;
+        els.reportBody.innerHTML = `<div class="empty-state"><h3>Erro ao gerar relatório</h3><p>${escapeHtml(err.message)}</p></div>`;
     }
 }
 

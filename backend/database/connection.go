@@ -25,7 +25,7 @@ func Connect() {
 
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
-		log.Fatalf("falha ao conectar ao banco: %v", err)
+		log.Fatalf("falha ao conectar ao banco de dados: %v", err)
 	}
 
 	if err := db.AutoMigrate(&models.Game{}); err != nil {
@@ -33,5 +33,5 @@ func Connect() {
 	}
 
 	DB = db
-	log.Println("conexao com PostgreSQL estabelecida")
+	log.Println("conexão com PostgreSQL estabelecida")
 }

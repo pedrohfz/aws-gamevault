@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="api-url" content="{{.APIGatewayURL}}">
-    <title>GameVault — Catalogo cifrado de jogos</title>
+    <title>GameVault — Catálogo cifrado de jogos</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -14,20 +14,20 @@
     <header class="topbar">
         <div class="brand">
             <h1>GAMEVAULT</h1>
-            <p class="subtitle">Catalogo cifrado de jogos</p>
+            <p class="subtitle">Catálogo cifrado de jogos</p>
         </div>
         <button class="btn btn-primary" id="btnNew">+ Novo Jogo</button>
     </header>
 
     <main class="container">
         <section id="gameList" class="game-grid">
-            <div class="loader">Carregando catalogo...</div>
+            <div class="loader">Carregando catálogo...</div>
         </section>
 
         <section class="report-section">
             <button class="btn btn-secondary btn-block" id="btnReport">
                 <span class="icon">📊</span>
-                <span>Ver Relatorio do Catalogo</span>
+                <span>Ver Relatório do Catálogo</span>
             </button>
         </section>
     </main>
@@ -48,7 +48,7 @@
 
                 <div class="form-grid">
                     <div class="form-row">
-                        <label for="genre">Genero</label>
+                        <label for="genre">Gênero</label>
                         <input type="text" id="genre" name="genre" required>
                     </div>
                     <div class="form-row">
@@ -79,11 +79,11 @@
     <div class="modal-backdrop" id="modalReport" hidden>
         <div class="modal modal-wide">
             <header class="modal-header">
-                <h2>📊 Relatorio do Catalogo</h2>
+                <h2>📊 Relatório do Catálogo</h2>
                 <button class="btn-icon" id="btnCloseReport" aria-label="Fechar">×</button>
             </header>
             <div id="reportBody" class="report-body">
-                <div class="loader">Calculando estatisticas...</div>
+                <div class="loader">Calculando estatísticas...</div>
             </div>
         </div>
     </div>

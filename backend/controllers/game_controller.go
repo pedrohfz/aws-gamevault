@@ -22,7 +22,7 @@ func GetGame(c *gin.Context) {
 	id := c.Param("id")
 	var game models.Game
 	if err := database.DB.First(&game, id).Error; err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "jogo nao encontrado"})
+		c.JSON(http.StatusNotFound, gin.H{"error": "jogo não encontrado"})
 		return
 	}
 	c.JSON(http.StatusOK, game)
@@ -45,7 +45,7 @@ func UpdateGame(c *gin.Context) {
 	id := c.Param("id")
 	var game models.Game
 	if err := database.DB.First(&game, id).Error; err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "jogo nao encontrado"})
+		c.JSON(http.StatusNotFound, gin.H{"error": "jogo não encontrado"})
 		return
 	}
 
@@ -72,7 +72,7 @@ func DeleteGame(c *gin.Context) {
 	id := c.Param("id")
 	var game models.Game
 	if err := database.DB.First(&game, id).Error; err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "jogo nao encontrado"})
+		c.JSON(http.StatusNotFound, gin.H{"error": "jogo não encontrado"})
 		return
 	}
 	if err := database.DB.Delete(&game).Error; err != nil {
