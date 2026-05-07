@@ -1,270 +1,265 @@
-# GameVault
+# 🎮 GameVault
 
-Catálogo de jogos cloud-native deployado na AWS com arquitetura serverless + containers. Desenvolvido em Go e Python para a disciplina de Serviços em Nuvem.
+    Catálogo de jogos cloud-native deployado na AWS, com CRUD completo
+    sobre a entidade Game e função Lambda dedicada para geração de
+    relatório estatístico do catálogo.
 
-CRUD completo sobre uma entidade `Game`, com função Lambda dedicada para geração de relatório estatístico do catálogo.
+    O objetivo do projeto é demonstrar na prática conceitos de:
+    - Arquitetura serverless + containers
+    - Comunicação entre serviços via API Gateway
+    - Banco de dados gerenciado em subnet privada (RDS)
+    - Containerização com Docker e deploy em ECS Fargate
+    - Função Lambda em Python consumindo API HTTP
+    - Organização modular de projetos em Go
 
----
+    Projeto desenvolvido para a disciplina de Serviços em Nuvem.
 
-## Arquitetura
+## 🧠 Arquitetura da Aplicação
 
-```text
-Usuário
-   │
-   ▼
-┌─────────────────────────────────────────────┐
-│            Amazon API Gateway               │
-│            (ponto único de entrada)         │
-└──┬──────────────┬──────────────┬────────────┘
-   │              │              │
-   │ /games       │ /report      │ /*
-   ▼              ▼              ▼
-┌──────────┐  ┌──────────┐  ┌───────────┐
-│ Backend  │  │  Lambda  │  │ Front-end │
-│ Go+Gin   │  │  Python  │  │ Go+Gin    │
-│ (ECS)    │  │          │  │ (ECS)     │
-└────┬─────┘  └────┬─────┘  └───────────┘
-     │             │
-     │             │ HTTP GET /games
-     │             │ (via API Gateway)
-     │             ▼
-     │       ┌──────────┐
-     │       │ Calcula  │
-     │       │  stats   │
-     │       └──────────┘
-     ▼
-┌──────────────┐
-│ Amazon RDS   │
-│ PostgreSQL   │
-│ (subnet      │
-│  privada)    │
-└──────────────┘
-```
+    A aplicação é composta por três serviços independentes orquestrados
+    por um único API Gateway, que atua como ponto de entrada.
 
-### Regras da arquitetura
+    Usuário
+    ↓
+    Amazon API Gateway
+    ↓
+    ├── /games, /games/:id  →  Backend Go (ECS Fargate)
+    │                          ↓
+    │                          Amazon RDS PostgreSQL (subnet privada)
+    │
+    ├── /report             →  Lambda Python
+    │                          ↓
+    │                          GET /games (via API Gateway)
+    │                          ↓
+    │                          Calcula estatísticas e retorna JSON
+    │
+    └── /*                  →  Frontend Go (ECS Fargate)
+                               ↓
+                               Serve HTML, CSS e JavaScript
 
-1. **Front-end** *não* fala diretamente com o back-end — todas as requisições passam pelo API Gateway.
-2. **Lambda** *não* acessa o RDS — consome a API HTTP via API Gateway e calcula estatísticas em memória.
-3. **RDS** fica em subnet privada, sem porta exposta à Internet. Apenas o back-end se conecta.
-4. **JS no browser** chama o API Gateway diretamente (CORS configurado).
+    Regras críticas da arquitetura:
+    - O frontend não fala diretamente com o backend, tudo passa pelo API Gateway
+    - A Lambda não acessa o RDS, apenas consome a API HTTP
+    - O RDS fica em subnet privada, sem porta exposta à Internet
+    - O JS no browser chama o API Gateway (CORS habilitado)
 
----
+## 📂 Estrutura do Projeto
 
-## Tecnologias
+    aws-gamevault/                            # Raiz do projeto
+    │
+    ├── backend/                              # API REST do CRUD
+    │   │
+    │   ├── controllers/                      # Camada HTTP da aplicação
+    │   │   ├── game_controller.go            # Endpoints CRUD de /games
+    │   │   └── report_controller.go          # Versão dev local da Lambda
+    │   │
+    │   ├── database/                         # Conexão com PostgreSQL
+    │   │   └── connection.go                 # GORM + AutoMigrate
+    │   │
+    │   ├── models/                           # Entidades de domínio
+    │   │   └── game.go                       # Struct Game e validações
+    │   │
+    │   ├── Dockerfile                        # Container Docker da API
+    │   ├── main.go                           # Inicialização do Gin (porta 8080)
+    │   ├── go.mod                            # Dependências do módulo Go
+    │   └── go.sum
+    │
+    ├── web/                                  # Aplicação Web
+    │   │
+    │   ├── controllers/                      # Controladores da aplicação web
+    │   │   └── page_controller.go            # Renderização da página HTML
+    │   │
+    │   ├── static/                           # Arquivos estáticos
+    │   │   ├── css/style.css                 # Tema Dark Vault
+    │   │   └── js/app.js                     # Lógica do frontend (Fetch API)
+    │   │
+    │   ├── templates/index.html              # Interface do catálogo
+    │   ├── Dockerfile                        # Container Docker da aplicação web
+    │   ├── main.go                           # Inicialização do servidor (porta 3000)
+    │   ├── go.mod
+    │   └── go.sum
+    │
+    ├── lambda/                               # Função AWS Lambda
+    │   └── report.py                         # Cálculo de estatísticas
+    │
+    ├── sql/                                  # Scripts de banco
+    │   └── init.sql                          # CREATE TABLE + 10 jogos seed
+    │
+    ├── docker-compose.yml                    # Orquestração para dev local
+    ├── .gitignore
+    ├── LICENSE
+    └── README.md
 
-| Camada | Tecnologia |
-|--------|------------|
-| Back-end | Go 1.25, Gin, GORM |
-| Front-end | Go 1.24, Gin, HTML templates, JS vanilla |
-| Banco de dados | PostgreSQL 17 (Amazon RDS) |
-| Função serverless | Python 3.12 (AWS Lambda) |
-| Containers | Docker (multi-stage build) |
-| Orquestração local | Docker Compose |
-| Gateway | Amazon API Gateway (HTTP API) |
-| Compute | Amazon ECS Fargate |
+## ⚙️ Tecnologias Utilizadas
 
----
+    - Go 1.25 (backend)
+    - Go 1.24 (frontend)
+    - Gin Framework
+    - GORM
+    - Python 3.12
+    - HTML
+    - CSS
+    - JavaScript
+    - PostgreSQL 17
+    - Docker
+    - Docker Compose
+    - AWS API Gateway
+    - AWS RDS
+    - AWS ECS Fargate
+    - AWS Lambda
+    - AWS VPC
 
-## Estrutura do projeto
+## 🎯 Entidade Game
 
-```text
-aws-gamevault/
-├── backend/                    # API REST do CRUD
-│   ├── controllers/
-│   │   ├── game_controller.go
-│   │   └── report_controller.go    # versão dev local da Lambda
-│   ├── database/
-│   │   └── connection.go
-│   ├── models/
-│   │   └── game.go
-│   ├── main.go
-│   ├── Dockerfile
-│   └── go.mod
-│
-├── web/                        # Front-end servindo HTML+JS+CSS
-│   ├── controllers/
-│   │   └── page_controller.go
-│   ├── static/
-│   │   ├── css/style.css       # tema Dark Vault
-│   │   └── js/app.js           # CRUD via fetch
-│   ├── templates/
-│   │   └── index.html
-│   ├── main.go
-│   ├── Dockerfile
-│   └── go.mod
-│
-├── lambda/
-│   └── report.py               # função AWS Lambda
-│
-├── sql/
-│   └── init.sql                # CREATE TABLE + 10 jogos seed
-│
-├── docker-compose.yml          # backend + web + postgres para dev local
-├── README.md
-└── LICENSE
-```
+    A aplicação gira em torno de uma única entidade principal.
 
----
+    Atributos:
+    - id           identificador único (auto-incremento)
+    - name         nome do jogo (obrigatório)
+    - genre        gênero (obrigatório)
+    - platform     plataforma (obrigatório)
+    - rating       nota de 0 a 10 (obrigatório)
+    - release_year ano de lançamento (obrigatório)
+    - created_at   timestamp de criação
+    - updated_at   timestamp da última atualização
 
-## Como rodar localmente
+    Exemplo de resposta da API:
+    {
+        "id": 1,
+        "name": "The Witcher 3: Wild Hunt",
+        "genre": "RPG",
+        "platform": "PC",
+        "rating": 9.8,
+        "release_year": 2015,
+        "created_at": "2026-05-07T12:17:02.781694Z",
+        "updated_at": "2026-05-07T12:17:02.781694Z"
+    }
 
-### Pré-requisitos
+## 🌐 Frontend
 
-- Docker Desktop
+    O frontend foi desenvolvido utilizando:
+    - Go + Gin
+    - Templates HTML
+    - JavaScript (Fetch API)
+    - CSS com tema Dark Vault (preto, grafite e dourado)
 
-### Passo a passo
+    Funcionalidades:
+    - Listar jogos do catálogo em cards visuais
+    - Cadastrar novo jogo via modal
+    - Editar jogo existente
+    - Excluir jogo do catálogo
+    - Visualizar relatório estatístico (consumido da Lambda)
 
-Na raiz do projeto:
+    O servidor Go apenas serve a interface. Toda a comunicação com a
+    API é feita pelo JavaScript no browser, chamando o API Gateway.
 
-```bash
-docker compose up --build
-```
+## ⚡ Lambda de Relatório
 
-Aguarde as três mensagens de boot:
+    Função Python que recebe um evento do API Gateway, consome a rota
+    GET /games via HTTP (sem acessar o RDS) e calcula estatísticas
+    em memória.
 
-- `gamevault-db` ... `healthy`
-- `gamevault-backend` ... `conexão com PostgreSQL estabelecida`
-- `gamevault-web` ... `Listening and serving HTTP on :3000`
+    Estatísticas calculadas:
+    - total de jogos no catálogo
+    - rating médio
+    - distribuição por gênero
+    - distribuição por plataforma
+    - jogo com maior rating
+    - jogo com menor rating
 
-Acesse:
+    Variável de ambiente da Lambda:
+    - API_URL    URL base do API Gateway
 
-- **Front-end:** [http://localhost:3000](http://localhost:3000)
-- **API direta:** [http://localhost:8080/games](http://localhost:8080/games)
+    Exemplo de resposta:
+    {
+        "total_games": 10,
+        "average_rating": 9.06,
+        "games_by_genre": { "RPG": 4, "FPS": 2, ... },
+        "games_by_platform": { "PC": 7, "PlayStation": 2, "Xbox": 1 },
+        "highest_rated": { "name": "The Witcher 3", "rating": 9.8 },
+        "lowest_rated": { "name": "Cyberpunk 2077", "rating": 7.5 }
+    }
 
-Para parar tudo e limpar volumes (recomeçar do zero com seed):
+## 🧪 Endpoints
 
-```bash
-docker compose down -v
-```
+    GET    /games          → Lista todos os jogos
+    GET    /games/:id      → Busca jogo por ID
+    POST   /games          → Cria um novo jogo
+    PUT    /games/:id      → Atualiza jogo existente
+    DELETE /games/:id      → Remove jogo
+    GET    /report         → Estatísticas do catálogo (Lambda)
 
-### Variáveis de ambiente (back-end)
+    Códigos de status:
+    - 200 OK
+    - 201 Created
+    - 400 Bad Request (validação)
+    - 404 Not Found
+    - 500 Internal Server Error
+    - 502 Bad Gateway (Lambda não conseguiu consumir API)
 
-| Variável | Descrição | Default |
-|----------|-----------|---------|
-| `DB_HOST` | Host do PostgreSQL | — |
-| `DB_PORT` | Porta do PostgreSQL | — |
-| `DB_USER` | Usuário | — |
-| `DB_PASSWORD` | Senha | — |
-| `DB_NAME` | Nome do banco | — |
-| `GIN_MODE` | `release` em produção | `debug` |
+## 🐳 Como Rodar Localmente
 
-### Variáveis de ambiente (front-end)
+    Pré-requisito: Docker Desktop instalado e em execução.
 
-| Variável | Descrição | Default |
-|----------|-----------|---------|
-| `WEB_PORT` | Porta de escuta | `3000` |
-| `API_GATEWAY_URL` | URL base do API Gateway | `http://localhost:8080` |
+    Na raiz do projeto:
+    docker compose up --build
 
----
+    Aguarde as três mensagens de boot:
+    - gamevault-db        ... healthy
+    - gamevault-backend   ... conexão com PostgreSQL estabelecida
+    - gamevault-web       ... Listening and serving HTTP on :3000
 
-## Endpoints da API
+    Acesse:
+    - Frontend     → http://localhost:3000
+    - API direta   → http://localhost:8080/games
 
-| Método | Rota | Descrição | Status codes |
-|--------|------|-----------|--------------|
-| GET | `/games` | Lista todos os jogos | 200 |
-| GET | `/games/:id` | Busca jogo por ID | 200, 404 |
-| POST | `/games` | Cria um novo jogo | 201, 400 |
-| PUT | `/games/:id` | Atualiza jogo existente | 200, 400, 404 |
-| DELETE | `/games/:id` | Remove jogo | 200, 404 |
-| GET | `/report` | Estatísticas do catálogo (Lambda) | 200, 502 |
+    Para parar tudo e limpar volumes (recomeçar com seed):
+    docker compose down -v
 
-### Modelo `Game`
+    Variáveis de ambiente do backend:
+    - DB_HOST       host do PostgreSQL
+    - DB_PORT       porta do PostgreSQL
+    - DB_USER       usuário
+    - DB_PASSWORD   senha
+    - DB_NAME       nome do banco
+    - GIN_MODE      release em produção, debug por padrão
 
-```json
-{
-  "id": 1,
-  "name": "The Witcher 3: Wild Hunt",
-  "genre": "RPG",
-  "platform": "PC",
-  "rating": 9.8,
-  "release_year": 2015,
-  "created_at": "2026-05-07T12:17:02.781694Z",
-  "updated_at": "2026-05-07T12:17:02.781694Z"
-}
-```
+    Variáveis de ambiente do frontend:
+    - WEB_PORT          porta de escuta (padrão 3000)
+    - API_GATEWAY_URL   URL base do API Gateway
 
-### Validações
+## ☁️ Arquitetura Planejada na AWS
 
-- `name`, `genre`, `platform`: obrigatórios
-- `rating`: obrigatório, entre 0 e 10
-- `release_year`: obrigatório
+    Internet
+    ↓
+    Amazon API Gateway (HTTP API)
+    ↓
+    ├── ECS Fargate Web Service     → Frontend (porta 3000)
+    ├── ECS Fargate Backend Service → API REST (porta 8080)
+    │                                   ↓
+    │                                   Amazon RDS PostgreSQL
+    │                                   (subnet privada)
+    └── AWS Lambda                  → /report
 
----
+    Regras de segurança:
+    - RDS aceita conexão apenas do Security Group do ECS backend
+    - Backend não tem porta pública, fica atrás do API Gateway
+    - Lambda não tem acesso ao RDS, apenas à API via HTTP
+    - CORS configurado no API Gateway para o domínio do frontend
 
-## Rota `/report` (Lambda)
+    Ordem de provisionamento no Console AWS:
+    1. VPC com subnets pública e privada
+    2. RDS PostgreSQL na subnet privada
+    3. ECR com repositórios para as imagens do backend e do web
+    4. ECS Fargate com os dois services
+    5. Lambda Python com o report.py
+    6. API Gateway com as rotas integradas
 
-A função Lambda em Python recebe um evento do API Gateway, faz `GET /games` (também via API Gateway, sem acessar o RDS) e devolve estatísticas calculadas em memória.
+## 📎 Autor
 
-### Resposta
+    Este projeto foi desenvolvido por Pedro Henrique Leite
 
-```json
-{
-  "total_games": 10,
-  "average_rating": 9.06,
-  "games_by_genre": {
-    "RPG": 4,
-    "FPS": 2,
-    "Action": 1,
-    "Metroidvania": 1,
-    "Plataforma": 1,
-    "Simulation": 1
-  },
-  "games_by_platform": {
-    "PC": 7,
-    "PlayStation": 2,
-    "Xbox": 1
-  },
-  "highest_rated": {
-    "name": "The Witcher 3: Wild Hunt",
-    "rating": 9.8
-  },
-  "lowest_rated": {
-    "name": "Cyberpunk 2077",
-    "rating": 7.5
-  }
-}
-```
+## 📄 Licença
 
-### Variável de ambiente da Lambda
-
-| Variável | Descrição |
-|----------|-----------|
-| `API_URL` | URL base do API Gateway (ex.: `https://abc123.execute-api.us-east-1.amazonaws.com/prod`) |
-
-> **Em dev local** existe uma rota `/report` no backend Go que simula a Lambda, calculando direto do banco. Em produção, o API Gateway roteia `/report` direto para a Lambda — o backend não é tocado.
-
----
-
-## Deploy na AWS
-
-A infraestrutura é provisionada manualmente no Console AWS, na seguinte ordem:
-
-1. **VPC** com 2 subnets públicas e 2 privadas em AZs diferentes.
-2. **RDS PostgreSQL 17** na subnet privada, sem acesso público. Security Group permite entrada apenas do SG do ECS.
-3. **ECR** com 2 repositórios: `gamevault-backend` e `gamevault-web`. Push das imagens com `docker push`.
-4. **ECS Fargate** com 2 services:
-   - `backend`: usa a imagem `gamevault-backend`, env vars apontando para o RDS, porta 8080.
-   - `web`: usa a imagem `gamevault-web`, env var `API_GATEWAY_URL` com a URL do API Gateway, porta 3000.
-5. **Lambda Python 3.12**: cria a função, faz upload do `lambda/report.py`, define a variável `API_URL`.
-6. **API Gateway (HTTP API)** com 4 integrações:
-   - `ANY /games` → ECS backend
-   - `ANY /games/{id}` → ECS backend
-   - `GET /report` → Lambda
-   - `ANY /{proxy+}` → ECS web
-7. **CORS** configurado no API Gateway para permitir o domínio do front-end.
-
-### Migração do schema
-
-O `sql/init.sql` cria a tabela `games` e popula com 10 jogos seed. Para rodar no RDS:
-
-```bash
-psql -h <RDS_ENDPOINT> -U <USER> -d <DBNAME> -f sql/init.sql
-```
-
-Alternativamente, o GORM `AutoMigrate` cria a tabela automaticamente no primeiro boot do back-end.
-
----
-
-## Autor
-
-Pedro Henrique Leite — disciplina de Serviços em Nuvem.
+    Este projeto é de uso educacional, sem fins comerciais.
+    Sinta-se à vontade para utilizar como referência em seus estudos!
