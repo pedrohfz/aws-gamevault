@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="api-url" content="{{.APIGatewayURL}}">
+    <title>GameVault — Catalogo cifrado de jogos</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <header class="topbar">
+        <div class="brand">
+            <h1>GAMEVAULT</h1>
+            <p class="subtitle">Catalogo cifrado de jogos</p>
+        </div>
+        <button class="btn btn-primary" id="btnNew">+ Novo Jogo</button>
+    </header>
+
+    <main class="container">
+        <section id="gameList" class="game-grid">
+            <div class="loader">Carregando catalogo...</div>
+        </section>
+
+        <section class="report-section">
+            <button class="btn btn-secondary btn-block" id="btnReport">
+                <span class="icon">📊</span>
+                <span>Ver Relatorio do Catalogo</span>
+            </button>
+        </section>
+    </main>
+
+    <div class="modal-backdrop" id="modalForm" hidden>
+        <div class="modal">
+            <header class="modal-header">
+                <h2 id="modalTitle">Novo Jogo</h2>
+                <button class="btn-icon" id="btnCloseForm" aria-label="Fechar">×</button>
+            </header>
+            <form id="gameForm" novalidate>
+                <input type="hidden" name="id" id="gameId">
+
+                <div class="form-row">
+                    <label for="name">Nome</label>
+                    <input type="text" id="name" name="name" required>
+                </div>
+
+                <div class="form-grid">
+                    <div class="form-row">
+                        <label for="genre">Genero</label>
+                        <input type="text" id="genre" name="genre" required>
+                    </div>
+                    <div class="form-row">
+                        <label for="platform">Plataforma</label>
+                        <input type="text" id="platform" name="platform" required>
+                    </div>
+                </div>
+
+                <div class="form-grid">
+                    <div class="form-row">
+                        <label for="rating">Rating (0-10)</label>
+                        <input type="number" id="rating" name="rating" min="0" max="10" step="0.1" required>
+                    </div>
+                    <div class="form-row">
+                        <label for="release_year">Ano</label>
+                        <input type="number" id="release_year" name="release_year" min="1950" max="2100" required>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" class="btn btn-ghost" id="btnCancelForm">Cancelar</button>
+                    <button type="submit" class="btn btn-primary" id="btnSubmit">Salvar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="modal-backdrop" id="modalReport" hidden>
+        <div class="modal modal-wide">
+            <header class="modal-header">
+                <h2>📊 Relatorio do Catalogo</h2>
+                <button class="btn-icon" id="btnCloseReport" aria-label="Fechar">×</button>
+            </header>
+            <div id="reportBody" class="report-body">
+                <div class="loader">Calculando estatisticas...</div>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast" class="toast" hidden></div>
+
+    <script src="/static/js/app.js"></script>
+</body>
+</html>
