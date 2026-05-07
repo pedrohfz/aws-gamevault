@@ -33,5 +33,17 @@ services:
       db:
         condition: service_healthy
 
+  web:
+    build: ./web
+    container_name: gamevault-web
+    environment:
+      WEB_PORT: 3000
+      API_GATEWAY_URL: http://localhost:8080
+      GIN_MODE: release
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+
 volumes:
   gamevault-data:
