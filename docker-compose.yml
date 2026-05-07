@@ -1,0 +1,37 @@
+services:
+  db:
+    image: postgres:17-alpine
+    container_name: gamevault-db
+    environment:
+      POSTGRES_USER: gamevault
+      POSTGRES_PASSWORD: gamevault
+      POSTGRES_DB: gamevault
+    ports:
+      - "5433:5432"
+    volumes:
+      - gamevault-data:/var/lib/postgresql/data
+      - ./sql/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U gamevault -d gamevault"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build: ./backend
+    container_name: gamevault-backend
+    environment:
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_USER: gamevault
+      DB_PASSWORD: gamevault
+      DB_NAME: gamevault
+      GIN_MODE: release
+    ports:
+      - "8080:8080"
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  gamevault-data:
